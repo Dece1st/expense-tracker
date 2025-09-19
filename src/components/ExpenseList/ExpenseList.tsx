@@ -1,69 +1,38 @@
-// src/components/ExpenseList/ExpenseList.tsx
 import React, { useState } from 'react';
 import ExpenseCard from '../ExpenseCard/ExpenseCard';
-import type { ExpenseCardProps } from '../ExpenseCard/ExpenseCard';
+import type { ExpenseCardProps, ExpenseCategory } from '../ExpenseCard/ExpenseCard';
 import './ExpenseList.css';
 
-// Type for expense data (reusing interface from ExpenseCard)
 type Expense = ExpenseCardProps;
+type FilterOption = 'All' | ExpenseCategory;
 
-/**
- * Props interface for ExpenseList component
- * FIXED: expenses is now required (not optional initialExpenses)
- * @interface ExpenseListProps
- * @property {Expense[]} expenses - Current expense data from parent component (App.tsx)
- */
 interface ExpenseListProps {
-  expenses: Expense[];  // FIXED: Required prop, receives current state from App
+  expenses: Expense[];
 }
 
-/**
- * ExpenseList Component - FIXED VERSION
- * 
- * IMPORTANT CHANGE: This component no longer manages expense data in local state.
- * It receives expenses as props from App.tsx and only manages UI state (filtering).
- * 
- * This fixes the "duplicate state" bug where:
- * - App.tsx had expense state (updated by form)
- * - ExpenseList had separate expense state (never updated)
- * 
- * Now there's a SINGLE SOURCE OF TRUTH in App.tsx
- * 
- * @param {ExpenseListProps} props - Component props
- * @returns {JSX.Element} Rendered expense list with filtering controls
- */
 const ExpenseList: React.FC<ExpenseListProps> = ({ expenses }) => {
-  
-  // ONLY manage UI state (filtering) - NOT expense data
-  const [filterCategory, setFilterCategory] = useState<string>('All');
+  const [filterCategory, setFilterCategory] = useState<FilterOption>('All');
 
-  // Filter expenses from props (not local state)
-  const filteredExpenses = filterCategory === 'All' 
-    ? expenses  // Use expenses from props
+  const filteredExpenses = filterCategory === 'All'
+    ? expenses
     : expenses.filter(expense => expense.category === filterCategory);
 
-  // Calculate total for the currently filtered expenses
   const filteredTotal = filteredExpenses.reduce(
     (sum, expense) => sum + expense.amount,
     0
   );
 
-  /**
-   * Handles category filter change from select dropdown
-   * @param {React.ChangeEvent<HTMLSelectElement>} event - Select change event
-   */
   const handleCategoryChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-    setFilterCategory(event.target.value);
+    setFilterCategory(event.target.value as FilterOption);
   };
 
   return (
     <div className="expense-list">
       <div className="expense-controls">
         <h2>Your Expenses</h2>
-        
         <div className="filter-controls">
           <label htmlFor="category-filter">Filter by category:</label>
-          <select 
+          <select
             id="category-filter"
             value={filterCategory}
             onChange={handleCategoryChange}
@@ -91,10 +60,7 @@ const ExpenseList: React.FC<ExpenseListProps> = ({ expenses }) => {
           </p>
         ) : (
           filteredExpenses.map(expense => (
-            <ExpenseCard
-              key={expense.id}
-              {...expense}
-            />
+            <ExpenseCard key={expense.id} {...expense} />
           ))
         )}
       </div>

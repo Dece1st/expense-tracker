@@ -1,60 +1,48 @@
 // src/components/ExpenseForm/ExpenseForm.tsx
 import React, { useState } from 'react';
 import './ExpenseForm.css';
+import type { ExpenseCategory } from '../ExpenseCard/ExpenseCard';
 
-// Form data interface
 interface ExpenseFormData {
   description: string;
   amount: string;
-  category: string;
+  category: ExpenseCategory;
   date: string;
 }
 
-/**
- * Form component for creating new expense entries with validation
- * @param {Object} props - Component props
- * @param {function} props.onSubmit - Callback function when form is submitted, receives expense data
- */
 interface ExpenseFormProps {
   onSubmit: (expenseData: {
     description: string;
     amount: number;
-    category: string;
+    category: ExpenseCategory;
     date: string;
   }) => void;
 }
 
 const ExpenseForm: React.FC<ExpenseFormProps> = ({ onSubmit }) => {
-  // Form state using controlled components pattern
   const [formData, setFormData] = useState<ExpenseFormData>({
     description: '',
     amount: '',
     category: 'Food',
-    date: new Date().toISOString().split('T')[0] // Today's date as default
+    date: new Date().toISOString().split('T')[0],
   });
 
-  /**
-   * Handles input changes for all form fields using computed property names
-   * @param {React.ChangeEvent<HTMLInputElement | HTMLSelectElement>} e - Change event from form inputs
-   */
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
-  ): void => {
+  ) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
+    setFormData(prev => {
+      if (name === 'category') {
+        return { ...prev, category: value as ExpenseCategory };
+      }
+      type TextField = Exclude<keyof ExpenseFormData, 'category'>; // 'description' | 'amount' | 'date'
+      return { ...prev, [name as TextField]: value };
+    });
   };
 
-  /**
-   * Handles form submission with validation and data processing
-   * @param {React.FormEvent<HTMLFormElement>} e - Form submission event
-   */
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>): void => {
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    
-    // Basic validation
+
     if (!formData.description.trim() || !formData.amount || !formData.date) {
       alert('Please fill in all required fields');
       return;
@@ -66,27 +54,25 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({ onSubmit }) => {
       return;
     }
 
-    // Submit processed data
     onSubmit({
       description: formData.description.trim(),
-      amount: amount,
+      amount,
       category: formData.category,
-      date: formData.date
+      date: formData.date,
     });
 
-    // Reset form after successful submission
     setFormData({
       description: '',
       amount: '',
       category: 'Food',
-      date: new Date().toISOString().split('T')[0]
+      date: new Date().toISOString().split('T')[0],
     });
   };
 
   return (
     <form className="expense-form" onSubmit={handleSubmit}>
       <h3>Add New Expense</h3>
-      
+
       <div className="form-group">
         <label htmlFor="description">Description *</label>
         <input
@@ -127,7 +113,6 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({ onSubmit }) => {
             <option value="Food">Food</option>
             <option value="Transportation">Transportation</option>
             <option value="Entertainment">Entertainment</option>
-            <option value="Shopping">Shopping</option>
             <option value="Other">Other</option>
           </select>
         </div>
